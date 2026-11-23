@@ -4,7 +4,7 @@
 
 Knapsack Explorer: Visualizing and Benchmarking 0/1 Knapsack Algorithms
 Course: CSCE 4110 - Algorithms  Team: DCE
-Team members: Daniel Ejimadu (Team Manager)
+Team members: Daniel Ejimadu
 A Python application that solves the 0/1 Knapsack problem with four algorithms, shows step by step how
 the dynamic programming (DP) table is built and which cells the backtracking path visits, and measures how
 each algorithm scales as the input grows.
