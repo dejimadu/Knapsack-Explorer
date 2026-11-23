@@ -24,7 +24,7 @@ Python 3.11 or newer. Libraries (see `requirements.txt`): streamlit, pandas, num
 No dataset or API key is needed.
 Setup
 ```bash
-git clone <repository-url>
+git clone (https://github.com/dejimadu/Knapsack-Explorer)
 cd knapsack-explorer
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
