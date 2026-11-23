@@ -1,16 +1,3 @@
-"""Core 0/1 Knapsack algorithms (module M1).
-
-Four solvers share one result format, :class:`KnapsackResult`:
-
-* ``brute_force``  - tries all 2^n subsets (ground truth, exponential time)
-* ``memoization``  - top-down DP: recursion + cache, O(nW)
-* ``tabulation``   - bottom-up DP: fills V[i][w] row by row, then backtracks
-* ``greedy``       - sort by value/weight ratio, take what fits (heuristic)
-
-Item indices in results are 0-based positions in the input lists. DP table
-rows/columns follow the recurrence in the proposal: ``table[i][w]`` is the best
-value using only the first ``i`` items with capacity ``w``.
-"""
 from __future__ import annotations
 
 import sys
@@ -19,7 +6,6 @@ from dataclasses import dataclass, field
 from functools import cmp_to_key
 from typing import Dict, List, Optional, Sequence, Tuple
 
-#: Brute force is exponential, so we refuse to run it beyond this many items.
 BRUTE_FORCE_MAX_ITEMS = 20
 
 
@@ -28,13 +14,13 @@ class KnapsackResult:
     """Shared result format returned by every algorithm."""
 
     algorithm: str
-    selected: List[int]                 # 0-based indices of chosen items (ascending)
+    selected: List[int]                
     total_weight: int
     total_value: int
-    table: Optional[List[List[Optional[int]]]] = None   # (n+1) x (W+1); None cells = never computed
-    path: List[Tuple[int, int]] = field(default_factory=list)  # backtracking cells (i, w), from (n, W) down
-    ops: Dict[str, int] = field(default_factory=dict)   # operation counters
-    elapsed: float = 0.0                # seconds (time.perf_counter)
+    table: Optional[List[List[Optional[int]]]] = None   
+    path: List[Tuple[int, int]] = field(default_factory=list) 
+    ops: Dict[str, int] = field(default_factory=dict)
+    elapsed: float = 0.0  
 
     @property
     def primary_ops(self) -> int:
@@ -57,17 +43,8 @@ def _summarize(weights, values, selected):
     return selected, sum(weights[i] for i in selected), sum(values[i] for i in selected)
 
 
-# --------------------------------------------------------------------------
-# Brute force
-# --------------------------------------------------------------------------
 def brute_force(weights: Sequence[int], values: Sequence[int], capacity: int) -> KnapsackResult:
-    """Examine every one of the 2^n subsets and keep the best one that fits.
 
-    Running weight/value totals are updated incrementally while recursing, so
-    each subset costs O(1) amortised and the total time is O(2^n) (within the
-    O(n * 2^n) bound that a naive per-subset sum would give). No pruning is
-    done on purpose: ``subsets_examined`` is exactly 2^n.
-    """
     _check(weights, values, capacity)
     n = len(weights)
     if n > BRUTE_FORCE_MAX_ITEMS:
@@ -89,9 +66,9 @@ def brute_force(weights: Sequence[int], values: Sequence[int], capacity: int) ->
                 best_value = v
                 best_set = list(chosen)
             return
-        rec(i + 1, w, v)                       # skip item i
+        rec(i + 1, w, v)    
         chosen.append(i)
-        rec(i + 1, w + weights[i], v + values[i])  # take item i
+        rec(i + 1, w + weights[i], v + values[i])  
         chosen.pop()
 
     rec(0, 0, 0)
@@ -100,9 +77,6 @@ def brute_force(weights: Sequence[int], values: Sequence[int], capacity: int) ->
                           {"subsets_examined": examined}, time.perf_counter() - start)
 
 
-# --------------------------------------------------------------------------
-# Top-down DP (memoization)
-# --------------------------------------------------------------------------
 def memoization(weights: Sequence[int], values: Sequence[int], capacity: int) -> KnapsackResult:
     """Top-down DP: ``best(i, w)`` with a cache so each subproblem is solved once.
 
@@ -113,7 +87,6 @@ def memoization(weights: Sequence[int], values: Sequence[int], capacity: int) ->
     """
     _check(weights, values, capacity)
     n = len(weights)
-    # Recursion depth is n + 1; make sure Python allows it.
     needed = n + 200
     if sys.getrecursionlimit() < needed:
         sys.setrecursionlimit(needed)
@@ -144,7 +117,6 @@ def memoization(weights: Sequence[int], values: Sequence[int], capacity: int) ->
     total = best(n, capacity)
     ops = {"calls": calls, "cache_hits": hits, "cells_filled": len(cache)}
 
-    # Backtrack using the cache (every needed state is already stored).
     table: List[List[Optional[int]]] = [[None] * (capacity + 1) for _ in range(n + 1)]
     for w in range(capacity + 1):
         table[0][w] = 0
@@ -159,9 +131,6 @@ def memoization(weights: Sequence[int], values: Sequence[int], capacity: int) ->
                           time.perf_counter() - start)
 
 
-# --------------------------------------------------------------------------
-# Bottom-up DP (tabulation)
-# --------------------------------------------------------------------------
 def _backtrack(table, weights, n, capacity, lookup=None):
     """Recover the chosen items. Start at (n, W); if V[i][w] != V[i-1][w] item i was taken."""
     get = lookup if lookup is not None else (lambda i, w: table[i][w])
@@ -208,9 +177,6 @@ def tabulation(weights: Sequence[int], values: Sequence[int], capacity: int) -> 
                           time.perf_counter() - start)
 
 
-# --------------------------------------------------------------------------
-# Greedy heuristic
-# --------------------------------------------------------------------------
 def greedy(weights: Sequence[int], values: Sequence[int], capacity: int) -> KnapsackResult:
     """Sort by value/weight ratio (descending) and take every item that still fits.
 
@@ -225,7 +191,6 @@ def greedy(weights: Sequence[int], values: Sequence[int], capacity: int) -> Knap
     def cmp(a: int, b: int) -> int:
         nonlocal comparisons
         comparisons += 1
-        # compare v[a]/w[a] with v[b]/w[b] exactly using cross-multiplication
         left, right = values[a] * weights[b], values[b] * weights[a]
         return -1 if left > right else (1 if left < right else 0)
 
